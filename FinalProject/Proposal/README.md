@@ -18,7 +18,7 @@ In this case, B-7 and E7 do not represent VII-7 and III7 because they serve a II
 To develop a functional program, I plan to reference rules from Berklee’s harmony class materials and convert them into algorithms. Berklee’s harmony rules are not optimal and can be redundant, so I will optimize them to create a program that approximates human analysis. While perfection is unattainable due to personal interpretation in some cases, the program aims to provide accurate results.
 
 ### Objective
-This project is not intended to replace Berklee’s harmony course but to complement it. The goal is to create a usable tool that assists students taking the harmony class at Berklee. Therefore, the project will be web-based.
+This project is not intended to connect Berklee’s harmony course. The goal is to create a usable tool that assists students taking the harmony class at Berklee and people like me who prefer to read Degree lead sheet. Therefore, the project will be web-based.
 
 ## Expected Outcomes
 - **Guaranteed**: With a given key and either a chord or degree, the program will provide the other. The output will comply with Berklee harmony course material, presented through a simple web-based interface.

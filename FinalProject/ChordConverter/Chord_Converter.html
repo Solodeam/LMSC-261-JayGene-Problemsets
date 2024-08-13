@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=3.0">
+    <title>Music Key Converter (Jay Gene Final Aug12 2024)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .input-group {
+            margin-bottom: 10px;
+        }
+        button {
+            margin-top: 20px;
+            margin-right: 10px;
+        }
+        #results {
+            display: flex;
+            margin-top: 20px;
+        }
+        #input-list {
+            color: rgb(53, 54, 88);
+            flex: 1;
+        }
+        #output-list {
+            color: rgb(0, 0, 0);
+            flex: 1;
+        }
+        .chord-type {
+            color: rgb(74, 74, 74);
+        }
+        .error {
+            color: red;
+        }
+        .tension-b9, .tension-b13, .tension-11 {
+            color: rgb(123, 13, 13);
+        }
+        .tension-9 {
+            color: rgb(20, 188, 23);
+        }
+        .tension-#11 {
+            color: rgb(127, 0, 245);
+        }
+        .tension-13 {
+            color: rgb(255, 98, 205);
+        }
+    </style>
+</head>
+<body>
+    <h1>Music Key Converter</h1>
+
+
+<!--Drop down menue for key selection-->
+    <label for="key">Select Key (Major):</label>
+    <select id="key">
+        <option value="C">C</option>
+        <option value="D">D</option>
+        <option value="E">E</option>
+        <option value="F">F</option>
+        <option value="G">G</option>
+        <option value="A">A</option>
+        <option value="B">B</option>
+        <option value="C#">C#</option>
+        <option value="Eb">Eb</option>
+        <option value="F#">F#</option>
+        <option value="Ab">Ab</option>
+        <option value="Bb">Bb</option>
+    </select>
+
+
+
+<!--Create a check box to choose if using special rules-->
+        <input type="checkbox" id="useSpecialRules" checked>
+        <label for="useSpecialRules">Use Special Rules (ie.Sub/V,7/IV)</label>
+<!--A short instruciton-->
+    <h6># and b are placed before Romans, After letters. V7/X is 7/X, Sub7/X is Sub/X. Romans and Letter all CAP. Accidentals follow music theory strictly. If error, try enharmonic spelling.</h6>
+   
+   
+   
+<!--Input that takes a note by typing, quality by selection and tension by checkbox-->
+    <div id="input-fields">
+        <div class="input-group">
+            <label for="note1">Note 1:</label>
+            <input type="text" id="note1">
+            <select id="chord1">
+                <option value="maj">maj</option>
+                <option value="min">min</option>
+                <option value="maj7">maj7</option>
+                <option value="min7">min7</option>
+                <option value="7">7</option>
+                <option value="-7b5">-7b5</option>
+            </select>
+            <div>
+                <label>Tension:</label>
+                <input type="checkbox" id="tension1-b9" value="b9"><label class="tension-b9">b9</label>
+                <input type="checkbox" id="tension1-9" value="9"><label class="tension-9">9</label>
+                <input type="checkbox" id="tension1-#9" value="#9"><label class="tension-b9">#9</label>
+                <input type="checkbox" id="tension1-11" value="11"><label class="tension-11">11</label>
+                <input type="checkbox" id="tension1-#11" value="#11"><label class="tension-#11">#11</label>
+                <input type="checkbox" id="tension1-b13" value="b13"><label class="tension-b13">b13</label>
+                <input type="checkbox" id="tension1-13" value="13"><label class="tension-13">13</label>
+            </div>
+        </div>
+    </div>
+
+
+<!--I created 2 functions in script, one for converting one for adding input field-->
+    <button onclick="addInput()">Add Another Note</button>
+    <button onclick="convert()">Convert</button>
+
+
+
+<!--created divs to neatly display input and output-->
+    <div id="results">
+        <div id="input-list"></div>
+        <div id="output-list"></div>
+    </div>
+
+
+
+
+    <script>
+        //the dictionary currently have low input tolerance. This can be fixed by simply expanding the dictionary.
+        const Keys = {
+            'C': {'C': 'I', 'D': 'II', 'E': 'III', 'F': 'IV', 'G': 'V', 'A': 'VI', 'B': 'VII',
+                  'C#': '#I', 'Db': 'bII', 'D#': '#II', 'Eb': 'bIII', 'F#': '#IV', 'Gb': 'bV',
+                  'G#': '#V', 'Ab': 'bVI', 'A#': '#VI', 'Bb': 'bVII'},
+            'D': {'D': 'I', 'E': 'II', 'F#': 'III', 'G': 'IV', 'A': 'V', 'B': 'VI', 'C#': 'VII',
+                  'D#': '#I', 'Eb': 'bII', 'F': 'bIII', 'F##': '#III', 'G#': '#IV', 'Ab': 'bV',
+                  'A#': '#V', 'Bb': 'bVI', 'C': 'bVII'},
+            'E': {'E': 'I', 'F#': 'II', 'G#': 'III', 'A': 'IV', 'B': 'V', 'C#': 'VI', 'D#': 'VII',
+                  'F': 'bII', 'E#': '#I', 'G': 'bIII', 'G##': '#III', 'A#': '#IV', 'Bb': 'bV',
+                  'C': 'bVI', 'D': 'bVII'},
+            'F': {'F': 'I', 'G': 'II', 'A': 'III', 'Bb': 'IV', 'C': 'V', 'D': 'VI', 'E': 'VII',
+                  'E#': '#VII', 'Gb': 'bV', 'F#': '#I', 'G#': '#II', 'Ab': 'bIII', 'A#': '#III',
+                  'B': '#IV', 'Cb': 'bV', 'C#': '#V', 'Db': 'bVI', 'D#': '#VI'},
+            'G': {'G': 'I', 'A': 'II', 'B': 'III', 'C': 'IV', 'D': 'V', 'E': 'VI', 'F#': 'VII',
+                  'Gb': 'bVII', 'G#': '#I', 'A#': '#II', 'Bb': 'bIII', 'C#': '#IV', 'Db': 'bV',
+                  'D#': '#V', 'Eb': 'bVI', 'F': 'bVII'},
+            'A': {'A': 'I', 'B': 'II', 'C#': 'III', 'D': 'IV', 'E': 'V', 'F#': 'VI', 'G#': 'VII',
+                  'Ab': 'bVII', 'A#': '#I', 'C': 'bIII', 'B#': '#II', 'C##': '#III', 'Db': 'bIV',
+                  'D#': '#IV', 'Eb': 'bV', 'F': 'bVI', 'E#': '#V'},
+            'B': {'B': 'I', 'C#': 'II', 'D#': 'III', 'E': 'IV', 'F#': 'V', 'G#': 'VI', 'A#': 'VII',
+                  'Bb': 'bI', 'C': 'bII', 'C##': '#II', 'Db': 'bIII', 'E#': '#IV', 'Fb': 'bV',
+                  'G': 'bVI', 'F##': '#V', 'A': 'bVII'},
+            'C#': {'C#': 'I', 'D#': 'II', 'E#': 'III', 'F#': 'IV', 'G#': 'V', 'A#': 'VI', 'B#': 'VII',
+                   'D': 'bII', 'E': 'bIII', 'F': 'bIV', 'G': 'bV', 'A': 'bVI', 'B': 'bVII'},
+            'Eb': {'Eb': 'I', 'F': 'II', 'G': 'III', 'Ab': 'IV', 'Bb': 'V', 'C': 'VI', 'D': 'VII',
+                   'Fb': 'bIV', 'F#': '#II', 'Gb': 'bV', 'A': 'bVI', 'B': 'bVII', 'E': '#IV'},
+            'F#': {'F#': 'I', 'G#': 'II', 'A#': 'III', 'B': 'IV', 'C#': 'V', 'D#': 'VI', 'E#': 'VII',
+                   'G': 'bII', 'A': 'bIII', 'B#': '#IV', 'C': 'bIV', 'D': 'bVI', 'E': 'bVII'},
+            'Ab': {'Ab': 'I', 'Bb': 'II', 'C': 'III', 'Db': 'IV', 'Eb': 'V', 'F': 'VI', 'G': 'VII',
+                   'A': 'bII', 'B': 'bIII', 'C#': '#III', 'D': 'bIV', 'E': 'bV', 'G#': '#I'},
+            'Bb': {'Bb': 'I', 'C': 'II', 'D': 'III', 'Eb': 'IV', 'F': 'V', 'G': 'VI', 'A': 'VII',
+                   'Db': 'bV', 'E': 'bVII', 'F#': '#II', 'Ab': 'bVI', 'B': 'bIII'}
+        };
+        //dictionary for special rules
+        const specialRules = {
+            'I7': '7/IV',
+            'II7': '7/V',
+            'III7': '7/VI',
+            'IV7': 'Sub/III',
+            'V7': '7',
+            'VI7': '7/II',
+            'VII7': '7/III',
+            'bII7': 'Sub/I',
+            'bIII7': 'Sub/II',
+            'bV7': 'Sub/IV',
+            'bVI7': 'Sub/V',
+            'bVII7': 'Sub/VI',
+            '7/IV': 'I7',
+            '7/V': 'II7',
+            '7/VI': 'III7',
+            'Sub/III': 'IV7',
+            '7/II': 'VI7',
+            '7/III': 'VII7',
+            'Sub/I': 'bII7',
+            'Sub/II': 'bIII7',
+            'Sub/IV': 'bV7',
+            'Sub/V': 'bVI7',
+            'Sub/VI': 'bVII7',
+        };
+
+
+        
+        let noteCount = 1;
+        function convert() {
+            //retrieve the key and special rules
+            const selectedKey = document.getElementById("key").value;
+            const useSpecialRules = document.getElementById("useSpecialRules").checked;
+            //load pairs in corresponding key
+            const note_to_roman = Keys[selectedKey];
+            //reverse the pairs when input is Roman by arrary.
+            const roman_to_note = Object.fromEntries(Object.entries(note_to_roman).map(([k, v]) => [v, k]));
+            
+
+            //initialize the input and output for display
+            let inputList = "";
+            let outputList = "";
+
+            //loop through all the notes
+            for (let i = 1; i <= noteCount; i++) {
+                let noteInput = document.getElementById(`note${i}`).value;
+                const chordInput = document.getElementById(`chord${i}`).value;
+                let result = null;
+
+                if (noteInput) {
+                    // Special rules
+                    if (useSpecialRules && specialRules[noteInput]) {//check specialrules enabled and input found in specialrules
+                        //turn special roman into normal roman
+                        const reverseMapping = Object.entries(specialRules).find(([key, value]) => value === noteInput);
+                        if (reverseMapping) {
+                            noteInput = reverseMapping[0].replace("7", "");
+                        } else {
+                            noteInput = noteInput;
+                        }
+                    }
+                    //put together as string
+                    inputList += 'Note ' + i + ': <span class="note">' + noteInput + '</span> <span class="chord-type">' + chordInput + '</span>';
+
+                    //Check for # and b in Roman
+                    // Check if the note input starts with '#' or 'b'
+                    if (noteInput.startsWith('#') || noteInput.startsWith('b')) {
+                        // Find the corresponding note in the reverse mapping
+                        result = Object.entries(roman_to_note).find(([key, value]) => key === noteInput);
+                        if (result) {
+                            // If a match is found, assign the corresponding note
+                            result = result[1];
+                        } else {
+                            // If no match is found, set the result to null
+                            result = null;
+                        }
+                    } else {
+                        // If the note input doesn't start with '#' or 'b', find the corresponding Roman numeral or note
+                        result = note_to_roman[noteInput] || roman_to_note[noteInput.toUpperCase()];
+                    }
+
+                    if (result) {
+                        // Special rules when input is Chord 7
+                        if (useSpecialRules && chordInput === '7' && specialRules[result + '7']) {
+                            outputList += `Note ${i}: <span class="note">${specialRules[result + '7']}</span>`;
+                        } else {
+                            outputList += `Note ${i}: <span class="note">${result}</span> <span class="chord-type">${chordInput}</span>`;
+                        }
+
+                        //tension
+                        const tensions = ['b9', '9', '#9', '11', '#11', 'b13', '13'];  // Define an array of possible tensions
+                        
+                        tensions.forEach(tension => {  // Iterate over each tension
+                            if (document.getElementById(`tension${i}-${tension}`).checked) {  // Check if the checkbox for the tension is checked
+                                outputList += ` <span class="tension-${tension.replace('#', '#').replace('b', 'b')}">${tension}</span>`;  // Append the tension to the output list with appropriate CSS class
+                            }
+                        });
+                        
+                        outputList += `<br>`;  // Add a line break after each note
+                        
+                        } else {
+                            outputList += `Note ${i}: <span class="error">Invalid input</span><br>`;  // Display an error message if the input is invalid
+                        }
+                        
+                        inputList += `<br>`;  // Add a line break after each input
+                        }
+                        }
+
+            // Update the input and output lists with the generated content
+            document.getElementById("input-list").innerHTML = inputList;
+            document.getElementById("output-list").innerHTML = outputList;
+        }
+        //function to add input field
+        function addInput() {
+            noteCount++;
+            const inputGroup = document.createElement('div');//create a div
+            inputGroup.className = 'input-group';
+            //everything in html
+            inputGroup.innerHTML = `
+                <label for="note${noteCount}">Note ${noteCount}:</label>
+                <input type="text" id="note${noteCount}">
+                <select id="chord${noteCount}">
+                    <option value="maj">maj</option>
+                    <option value="min">min</option>
+                    <option value="maj7">maj7</option>
+                    <option value="min7">min7</option>
+                    <option value="7">7</option>
+                    <option value="-7b5">-7b5</option>
+                </select>
+                <div>
+                    <label>Tension:</label>
+                    <input type="checkbox" id="tension${noteCount}-b9" value="b9"><label class="tension-b9">b9</label>
+                    <input type="checkbox" id="tension${noteCount}-9" value="9"><label class="tension-9">9</label>
+                    <input type="checkbox" id="tension${noteCount}-#9" value="#9"><label class="tension-b9">#9</label>
+                    <input type="checkbox" id="tension${noteCount}-11" value="11"><label class="tension-11">11</label>
+                    <input type="checkbox" id="tension${noteCount}-#11" value="#11"><label class="tension-#11">#11</label>
+                    <input type="checkbox" id="tension${noteCount}-b13" value="b13"><label class="tension-b13">b13</label>
+                    <input type="checkbox" id="tension${noteCount}-13" value="13"><label class="tension-13">13</label>
+                </div>
+            `;
+            document.getElementById('input-fields').appendChild(inputGroup);
+        }
+    </script>
+</body>
+</html>
